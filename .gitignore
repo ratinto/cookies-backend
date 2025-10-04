@@ -1,0 +1,48 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+*.sqlite3
+
+# Environment
+
+.env
+
+*.env
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# Migrations
+*/migrations/
+!*/migrations/__init__.py
+
+# Static files
+staticfiles/
+static/
+media/
+
+# Node
+node_modules/
+
+# Coverage
+htmlcov/
+.coverage
+*.cover
+*.py,cover
+
+# Test output
+test-results/
+junit.xml
+
+# Others
+*.bak
+*.swp
+*.swo
