@@ -156,10 +156,14 @@ CORS_ALLOW_CREDENTIALS = True
 # Google OAuth settings
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
 GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
-GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI', default='http://localhost:8002/api/auth/google/callback/')
+GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI', default='http://localhost:8000/api/auth/google/callback/')
 
 # Gemini AI settings
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='your_gemini_api_key_here')
+
+# GitHub API settings
+GITHUB_ACCESS_TOKEN = config('GITHUB_ACCESS_TOKEN', default='')  # For higher rate limits
+GITHUB_API_BASE_URL = 'https://api.github.com'
 
 # Logging
 LOGGING = {

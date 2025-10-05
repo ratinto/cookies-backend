@@ -1,13 +1,9 @@
-# Django Cookie-Licking Detection Backend Requirements
+# Real Cookie-Licking Detection Backend Requirements
 
 # Core Django
 Django==5.2.4
 djangorestframework==3.16.0
 django-cors-headers==4.3.1
-
-# Authentication and JWT
-djangorestframework-simplejwt==5.5.1
-PyJWT==2.10.1
 
 # HTTP Requests for GitHub API
 requests==2.32.3
@@ -15,18 +11,15 @@ requests==2.32.3
 # Environment configuration
 python-decouple==3.8
 
+# Background tasks
+celery==5.3.4
+redis==5.0.1
+
 # Database
 dj-database-url==3.0.1
 
 # Static files serving
 whitenoise==6.11.0
 
-# ASGI server for production
-uvicorn==0.37.0
-
-# Python utilities
-python-dateutil==2.9.0.post0
-pytz==2024.2
-
-# Development tools (optional)
+# Development tools
 ipython==8.30.0

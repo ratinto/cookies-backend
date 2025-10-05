@@ -8,20 +8,21 @@ import json
 
 
 class GoogleUser(models.Model):
-    """Google authenticated user model"""
+    """Google OAuth user model"""
     email = models.EmailField(unique=True)
+    name = models.CharField(max_length=100)
     google_id = models.CharField(max_length=100, unique=True)
-    name = models.CharField(max_length=200)
-    avatar_url = models.URLField(blank=True, null=True)
-    github_url = models.URLField(blank=True, null=True)  # User-provided GitHub profile URL
-    github_username = models.CharField(max_length=100, blank=True, null=True)  # Extracted from URL
-    access_token = models.TextField()  # Google access token
-    is_active = models.BooleanField(default=True)
+    avatar_url = models.URLField()
+    access_token = models.TextField(blank=True, null=True)
+    refresh_token = models.TextField(blank=True, null=True)
+    github_url = models.URLField(blank=True, null=True)
+    github_username = models.CharField(max_length=100, blank=True, null=True)
+    github_access_token = models.TextField(blank=True, null=True)  # For GitHub API calls
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"GoogleUser: {self.email}"
+        return f"{self.name} ({self.email})"
 
     def save(self, *args, **kwargs):
         # Extract GitHub username from URL if provided
@@ -241,3 +242,101 @@ class AIAnalysisLog(models.Model):
     def __str__(self):
         contributor_name = self.contributor.username if self.contributor else 'N/A'
         return f"AI Analysis: {self.analysis_type} for {contributor_name}"
+
+
+# Real GitHub Data Models for Cookie-Licking Detection
+
+class GitHubUser(models.Model):
+    """GitHub user model with real data"""
+    username = models.CharField(max_length=100, unique=True, db_index=True)
+    github_id = models.BigIntegerField(unique=True, null=True, blank=True)
+    avatar_url = models.URLField(blank=True, null=True)
+    trust_score = models.FloatField(default=0.0)
+    tag = models.CharField(max_length=50, default='Unknown')
+    last_activity_check = models.DateTimeField(null=True, blank=True)
+    last_activity_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.username} (Trust: {self.trust_score})"
+
+class RealIssue(models.Model):
+    """Real GitHub issue model"""
+    issue_id = models.BigIntegerField(unique=True)
+    issue_number = models.IntegerField()
+    title = models.CharField(max_length=500)
+    body = models.TextField(blank=True, null=True)
+    repo_owner = models.CharField(max_length=100)
+    repo_name = models.CharField(max_length=200)
+    assignee = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    status = models.CharField(max_length=20, default='open')  # open, closed
+    created_at_github = models.DateTimeField()
+    updated_at_github = models.DateTimeField()
+    last_reminder_sent = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at_github']
+        indexes = [
+            models.Index(fields=['repo_owner', 'repo_name']),
+            models.Index(fields=['assignee']),
+        ]
+
+    def __str__(self):
+        return f"{self.repo_owner}/{self.repo_name}#{self.issue_number}: {self.title}"
+
+class RealComment(models.Model):
+    """Real GitHub issue comment"""
+    comment_id = models.BigIntegerField(unique=True)
+    issue = models.ForeignKey(RealIssue, on_delete=models.CASCADE, related_name='comments')
+    username = models.CharField(max_length=100, db_index=True)
+    user_id = models.BigIntegerField(null=True, blank=True)
+    body = models.TextField()
+    reactions_count = models.IntegerField(default=0)
+    created_at_github = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at_github']
+
+    def __str__(self):
+        return f"Comment by {self.username} on Issue #{self.issue.issue_number}"
+
+class RealActivityLog(models.Model):
+    """GitHub user activity log"""
+    event_id = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=100, db_index=True)
+    event_type = models.CharField(max_length=50)  # PushEvent, PullRequestEvent, etc.
+    repo_name = models.CharField(max_length=200)
+    event_data = models.JSONField()
+    trust_score_points = models.IntegerField(default=0)
+    created_at_github = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at_github']
+
+    def __str__(self):
+        return f"{self.username}: {self.event_type} (+{self.trust_score_points})"
+
+class InactiveAssigneeDetection(models.Model):
+    """Cookie-licking detection for inactive assignees"""
+    issue = models.ForeignKey(RealIssue, on_delete=models.CASCADE)
+    assignee_username = models.CharField(max_length=100)
+    days_inactive = models.IntegerField()
+    trust_score_at_detection = models.FloatField()
+    reminder_sent = models.BooleanField(default=False)
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    unassigned = models.BooleanField(default=False)
+    unassigned_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['issue', 'assignee_username']
+
+    def __str__(self):
+        return f"Detection: {self.assignee_username} on {self.issue.repo_owner}/{self.issue.repo_name}#{self.issue.issue_number}"
